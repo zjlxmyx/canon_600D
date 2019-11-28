@@ -1,7 +1,6 @@
 import ctypes
 import os
 import numpy
-import cv2
 from turbojpeg import TurboJPEG
 import win32gui
 import win32api
@@ -83,8 +82,9 @@ class CanonCamera:
         imageData = numpy.ctypeslib.as_array(ctypes.cast(Pointer, ctypes.POINTER(ctypes.c_ubyte)), (imageLen.value,))
         EDSDK.EdsRelease(LiveStream)
         EDSDK.EdsRelease(evfImage)
-        if (imageData.size != 0) and (imageData[0] != 0):
-            return jpeg.decode(imageData)
+        # if (imageData.size != 0) and (imageData[0] != 0):
+        #     return jpeg.decode(imageData)
+        return imageData
 
     def set_Capture_ready(self):
         kEdsObjectEvent_All = 0x00000200
