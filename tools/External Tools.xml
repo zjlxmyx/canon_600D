@@ -1,0 +1,16 @@
+<toolSet name="External Tools">
+  <tool name="Qt_designer" description="Qt" showInMainMenu="false" showInEditor="false" showInProject="false" showInSearchPopup="false" disabled="false" useConsole="true" showConsoleOnStdOut="false" showConsoleOnStdErr="false" synchronizeAfterRun="true">
+    <exec>
+      <option name="COMMAND" value="C:\ProgramData\Anaconda3\Library\bin\designer.exe" />
+      <option name="PARAMETERS" />
+      <option name="WORKING_DIRECTORY" value="$FileDir$" />
+    </exec>
+  </tool>
+  <tool name="PyUIC" description="PyUIC" showInMainMenu="false" showInEditor="false" showInProject="false" showInSearchPopup="false" disabled="false" useConsole="true" showConsoleOnStdOut="false" showConsoleOnStdErr="false" synchronizeAfterRun="true">
+    <exec>
+      <option name="COMMAND" value="C:\ProgramData\Anaconda3\python.exe" />
+      <option name="PARAMETERS" value="-m PyQt5.uic.pyuic $FileName$ -o ui_$FileNameWithoutExtension$.py -x" />
+      <option name="WORKING_DIRECTORY" value="$FileDir$" />
+    </exec>
+  </tool>
+</toolSet>
