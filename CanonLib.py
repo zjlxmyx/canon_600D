@@ -57,43 +57,67 @@ class CanonCamera:
 
 
     def Init_Camera(self):
-        EDSDK.EdsInitializeSDK()
+        if EDSDK.EdsInitializeSDK():
+            return "Initial SDK failed"
         EdsCameraListRef = ctypes.c_void_p(None)
-        EDSDK.EdsGetCameraList(ctypes.byref(EdsCameraListRef))
-        EDSDK.EdsGetChildAtIndex(EdsCameraListRef, 0, ctypes.byref(self.CameraRef))
-        EDSDK.EdsOpenSession(self.CameraRef)
+
+        if EDSDK.EdsGetCameraList(ctypes.byref(EdsCameraListRef)):
+            return "Get camera list failed"
+
+        if EDSDK.EdsGetChildAtIndex(EdsCameraListRef, 0, ctypes.byref(self.CameraRef)):
+            return "Get cameraRef failed"
+
+        if EDSDK.EdsOpenSession(self.CameraRef):
+            return "Open session failed"
 
     def set_LiveView_ready(self):
         kEdsPropID_Evf_OutputDevice = 0x00000500
         outPropertyData = ctypes.c_int(2)
-        EDSDK.EdsSetPropertyData(self.CameraRef, kEdsPropID_Evf_OutputDevice, 0, ctypes.sizeof(outPropertyData), ctypes.byref(outPropertyData))
+        if EDSDK.EdsSetPropertyData(self.CameraRef, kEdsPropID_Evf_OutputDevice, 0, ctypes.sizeof(outPropertyData), ctypes.byref(outPropertyData)):
+            return "Set OutPutDevice failed"
 
     # get single Live image, should be in a loop
     def get_Live_image(self):
         LiveStream = ctypes.c_void_p()
         evfImage = ctypes.c_void_p()
-        EDSDK.EdsCreateMemoryStream(ctypes.c_ulonglong(0), ctypes.byref(LiveStream))
-        EDSDK.EdsCreateEvfImageRef(LiveStream, ctypes.byref(evfImage))
+        if EDSDK.EdsCreateMemoryStream(ctypes.c_ulonglong(0), ctypes.byref(LiveStream)):
+            return "Create memory stream failed"
+
+        if EDSDK.EdsCreateEvfImageRef(LiveStream, ctypes.byref(evfImage)):
+            return "Create EvfImageRef failed"
+
         Pointer = ctypes.pointer(ctypes.c_ubyte())
         imageLen = ctypes.c_ulonglong()
-        EDSDK.EdsDownloadEvfImage(self.CameraRef, evfImage)
-        EDSDK.EdsGetPointer(LiveStream, ctypes.byref(Pointer))
-        EDSDK.EdsGetLength(LiveStream, ctypes.byref(imageLen))
+        if EDSDK.EdsDownloadEvfImage(self.CameraRef, evfImage):
+            return "Download EvfImage failed"
+
+        if EDSDK.EdsGetPointer(LiveStream, ctypes.byref(Pointer)):
+            return "Get pointer failed"
+
+        if EDSDK.EdsGetLength(LiveStream, ctypes.byref(imageLen)):
+            return "Get length failed"
+
         imageData = numpy.ctypeslib.as_array(ctypes.cast(Pointer, ctypes.POINTER(ctypes.c_ubyte)), (imageLen.value,))
-        EDSDK.EdsRelease(LiveStream)
-        EDSDK.EdsRelease(evfImage)
+        if EDSDK.EdsRelease(LiveStream):
+            return "Release stream failed"
+
+        if EDSDK.EdsRelease(evfImage):
+            return "Release EvfImage failed"
         # if (imageData.size != 0) and (imageData[0] != 0):
         #     return jpeg.decode(imageData)
         return imageData
 
     def set_Capture_ready(self):
         kEdsObjectEvent_All = 0x00000200
-        EDSDK.EdsSetObjectEventHandler(self.CameraRef, kEdsObjectEvent_All, ObjectHandler, None)
+        if EDSDK.EdsSetObjectEventHandler(self.CameraRef, kEdsObjectEvent_All, ObjectHandler, None):
+            return "Set Object event handler failed"
         kEdsPropID_SaveTo = 0x0000000b
         kEdsSaveTo_Host = ctypes.c_int(2)
-        EDSDK.EdsSetPropertyData(self.CameraRef, kEdsPropID_SaveTo, 0, ctypes.sizeof(kEdsSaveTo_Host), ctypes.byref(kEdsSaveTo_Host))
+        if EDSDK.EdsSetPropertyData(self.CameraRef, kEdsPropID_SaveTo, 0, ctypes.sizeof(kEdsSaveTo_Host), ctypes.byref(kEdsSaveTo_Host)):
+            return "Set SaveToHost failed"
         cap = EdsCapacity(0x7FFFFFFF, 0x1000, 1)
-        EDSDK.EdsSetCapacity(self.CameraRef, cap)
+        if EDSDK.EdsSetCapacity(self.CameraRef, cap):
+            return "Set capacity failed"
 
     def get_Capture_image(self):
         main_thread_id = win32api.GetCurrentThreadId()
@@ -101,10 +125,14 @@ class CanonCamera:
             win32api.PostThreadMessage(main_thread_id, win32con.WM_QUIT, 0, 0)
         t = Timer(5, on_timer)  # Quit after 5 seconds
         t.start()
-        EDSDK.EdsSendCommand(self.CameraRef, 0, 0)
+        if EDSDK.EdsSendCommand(self.CameraRef, 0, 0):
+            return "Send command failed"
         win32gui.PumpMessages()
 
     def Terminate(self):
-        EDSDK.EdsCloseSession(self.CameraRef)
-        EDSDK.EdsTerminateSDK()
+        if EDSDK.EdsCloseSession(self.CameraRef):
+            return "Close session failed"
+
+        if EDSDK.EdsTerminateSDK():
+            return "Terminate SDK failed"
 
