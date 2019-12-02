@@ -1,77 +1,69 @@
-import ctypes
-import os
-from ctypes import wintypes
-import numpy
-import cv2
-import time
+import sys
+import numpy as np
+import CanonLib
+from ui_canon_test import Ui_MainWindow
+from PyQt5 import QtCore, QtGui, QtWidgets
+from turbojpeg import TurboJPEG
+
+jpeg = TurboJPEG("C:\\turbojpeg.dll")
 
 
+class GUIMainWindow(Ui_MainWindow, QtWidgets.QMainWindow):
 
-os.environ['path'] += ';C:\\Users\\yanxin\\PycharmProjects\\canon_600D'
-EDSDK = ctypes.cdll.LoadLibrary('C:\\Users\\yanxin\PycharmProjects\\canon_600D\\EDSDK.dll')
-hr = False
-a = EDSDK.EdsInitializeSDK()
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+        self.show()
+        self.init_UI()
+        self.camera_thread = CameraThread()
+        self.camera_thread.CameraSignal.connect(self.camera_show)
 
-EdsCameraListRef = ctypes.c_void_p(None)
-b = EDSDK.EdsGetCameraList(ctypes.byref(EdsCameraListRef))
+    def init_UI(self):
+        self.pushButton_camera.clicked.connect(self.camera_task)
 
-count = ctypes.c_int()
-# c = EDSDK.EdsGetChildCount(EdsCameraListRef, ctypes.byref(count))
+    def camera_task(self):
+        if self.pushButton_camera.isChecked():
+            self.pushButton_camera.setText('Camera ON')
+            self.camera_thread.flag = True
+            self.camera_thread.start()
 
-camera = ctypes.c_void_p()
-d = EDSDK.EdsGetChildAtIndex(EdsCameraListRef, 0, ctypes.byref(camera))
+        else:
+            self.pushButton_camera.setText('Camera')
+            self.camera_thread.flag = False
 
-e = EDSDK.EdsOpenSession(camera)
-
-VolumeRef = ctypes.c_void_p()
-f = EDSDK.EdsGetChildAtIndex(camera, 0, ctypes.byref(VolumeRef))
-EDSDK.EdsGetChildCount(VolumeRef, ctypes.byref(count))
-
-
-class VolumeInfo(ctypes.Structure):
-    _fields_ = [("storageType", ctypes.c_ulong),
-                ("EdsAccess", ctypes.c_void_p),
-                ("maxCapacity", ctypes.c_ulonglong),
-                ("freeSpaceInBytes", ctypes.c_ulonglong),
-                ("szVolumeLabel", ctypes.c_char),
-                ]
-
-
-# Vinfo = VolumeInfo()
-# h = EDSDK.EdsGetVolumeInfo(VolumeRef, ctypes.byref(Vinfo))
-
-Directoryitem = ctypes.c_void_p()
-i = EDSDK.EdsGetChildAtIndex(VolumeRef, 0, ctypes.byref(Directoryitem))
-EDSDK.EdsGetChildCount(VolumeRef, ctypes.byref(count))
-
-# folder = ctypes.c_void_p()
-# j = EDSDK.EdsGetChildAtIndex(Directoryitem, 1, ctypes.byref(folder))
-# EDSDK.EdsGetChildCount(folder, ctypes.byref(count))
-
-# jj = EDSDK.EdsDeleteDirectoryItem(folder)
-
-# file = folder = ctypes.c_void_p()
-# k = EDSDK.EdsGetChildAtIndex(folder, 0, ctypes.byref(file))
-
-class DirectoryItemInfo(ctypes.Structure):
-    _fields_ = [("size", ctypes.c_ulonglong),
-                ("isFolder", ctypes.c_bool),
-                ("groupID", ctypes.c_ulong),
-                ("option", ctypes.c_ulong),
-                ("szFileName", ctypes.c_char),
-                ("format", ctypes.c_ulong),
-                ("dateTime", ctypes.c_ulong),
-                ]
+    def camera_show(self, image):
+        frame = jpeg.decode(image)
+        Qimg = QtGui.QImage(frame.data, frame.shape[1], frame.shape[0], QtGui.QImage.Format_RGB888)
+        pixmap = QtGui.QPixmap.fromImage(Qimg)
+        self.label_image_show.setPixmap(pixmap)
 
 
-DInfo = DirectoryItemInfo()
-ll = EDSDK.EdsGetDirectoryItemInfo(VolumeRef, ctypes.byref(DInfo))
+class CameraThread(QtCore.QThread):
+    CameraSignal = QtCore.pyqtSignal(np.ndarray)
 
-print(VolumeRef)
+    def __init__(self):
+        super().__init__()
+        self.camera = CanonLib.CanonCamera()
+        self.camera.Init_Camera()
+        self.data = None
+        self.flag = None
 
-t = EDSDK.EdsCloseSession(camera)
+    def run(self):
+        self.camera.set_LiveView_ready()
+        while self.flag:
+            self.data = self.camera.get_Live_image()
+            if (self.data.size != 0) and (self.data[0] != 0):
+                self.CameraSignal.emit(self.data)
+        self.camera.Terminate()
 
 
 
 
-EDSDK.EdsTerminateSDK()
+
+
+
+
+if __name__ == "__main__":
+    app = QtWidgets.QApplication(sys.argv)
+    MainWindow = GUIMainWindow()
+    sys.exit(app.exec_())
