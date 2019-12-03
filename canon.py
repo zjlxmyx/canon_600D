@@ -122,6 +122,7 @@ while True:
     data = numpy.ctypeslib.as_array(ctypes.cast(imageData, ctypes.POINTER(ctypes.c_ubyte)),  (imageLen.value,))
     # data = numpy.ctypeslib.as_array(imageData, (518400,))
     # data.dtype = 'uint8'
+    print(data[0:3])
     jpeg = TurboJPEG("C:\\turbojpeg.dll")
     if (data.size != 0) and (data[0] != 0):
         frame = jpeg.decode(data)
