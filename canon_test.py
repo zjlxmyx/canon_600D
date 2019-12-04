@@ -18,6 +18,7 @@ class GUIMainWindow(Ui_MainWindow, QtWidgets.QMainWindow):
         self.init_UI()
         self.camera_thread = CameraThread()
         self.camera_thread.CameraSignal.connect(self.camera_show)
+        self.pushButton_camera.setText('Camera')
 
     def init_UI(self):
         self.pushButton_camera.clicked.connect(self.camera_task)
