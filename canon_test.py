@@ -60,13 +60,14 @@ class GUIMainWindow(Ui_MainWindow, QtWidgets.QMainWindow):
         pixmap = QtGui.QPixmap.fromImage(Qimg)
         self.label_image_show.setPixmap(pixmap)
 
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         grad_x = cv2.Sobel(frame, -1, 1, 0, ksize=5)
         grad_y = cv2.Sobel(frame, -1, 0, 1, ksize=5)
         grad = cv2.addWeighted(grad_x, 0.5, grad_y, 0.5, 0)
         Qimg = QtGui.QImage(grad.data, grad.shape[1], grad.shape[0], QtGui.QImage.Format_Grayscale8)
         pixmap = QtGui.QPixmap.fromImage(Qimg)
         self.label_image_show_2.setPixmap(pixmap)
-        self.pushButton_capture.setText(str(grad.var()))
+        print(grad.var())
 
 
     def closeEvent(self, event):

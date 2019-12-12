@@ -28,10 +28,17 @@ class Ui_MainWindow(object):
         self.label_image_show_2 = QtWidgets.QLabel(self.centralwidget)
         self.label_image_show_2.setGeometry(QtCore.QRect(660, 50, 528, 352))
         self.label_image_show_2.setObjectName("label_image_show_2")
+        self.label_score = QtWidgets.QLabel(self.centralwidget)
+        self.label_score.setGeometry(QtCore.QRect(280, 520, 381, 91))
+        font = QtGui.QFont()
+        font.setPointSize(25)
+        self.label_score.setFont(font)
+        self.label_score.setObjectName("label_score")
         self.label_image_show.raise_()
         self.pushButton_camera.raise_()
         self.pushButton_capture.raise_()
         self.label_image_show_2.raise_()
+        self.label_score.raise_()
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1225, 23))
@@ -51,6 +58,7 @@ class Ui_MainWindow(object):
         self.pushButton_capture.setText(_translate("MainWindow", "capture"))
         self.label_image_show.setText(_translate("MainWindow", "TextLabel"))
         self.label_image_show_2.setText(_translate("MainWindow", "TextLabel"))
+        self.label_score.setText(_translate("MainWindow", "TextLabel"))
 
 
 if __name__ == "__main__":
